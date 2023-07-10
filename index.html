@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TANK GAME</title>
+    <script src="until.js"></script>
+    <script src="classes/Bullet.js"></script>
+    <script src="classes/Enemy.js"></script>
+    <script src="classes/Tank.js"></script>
+</head>
+<body>
+    <canvas id="game-screen" width="800" height="800" style="background-color: black;"></canvas>
+    <script>
+        let canvas = document.getElementById("game-screen");
+        let tank = new Tank(canvas, canvas.width/2, canvas.height/2)
+        let bullets = [];
+        let enemies = [];
+
+        function createEnemy(){
+            for (let i = 0; i < 4; i++) {
+                let x = Math.floor(Math.random() * canvas.width)
+                let y = Math.floor(Math.random() * canvas.height)
+                let enemy = new Enemy(canvas,x ,y);
+                enemies.push(enemy);
+            }
+            console.log(enemies);
+        }
+
+        createEnemy();
+
+
+
+        function main() {
+            clearScreen();
+            autoFire();
+            showBullets();
+            showEnemies();
+            tank.render();
+            checkCollision();
+            requestAnimationFrame(main)
+        }
+
+        main();
+
+        window.addEventListener("keydown", control)
+
+        function control(evt) {
+            tank.move(evt.key);
+        }
+
+        function clearScreen(){
+            let ctx = canvas.getContext("2d");
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+        }
+
+        function autoFire() {
+            if(tank.dir != DIR_LEFT && tank.dir != DIR_RIGHT  && tank.dir != DIR_TOP && tank.dir != DIR_BOTTOM) return;
+            let bullet = tank.fire();
+            if(bullet)
+                bullets.push(bullet);
+        }
+
+        function showBullets() {
+            for (let i = 0; i < bullets.length; i++) {
+               bullets[i].fly(); 
+               bullets[i].render(); 
+            }
+        }
+
+        function showEnemies() {
+            for (let i = 0; i < enemies.length; i++) {
+                enemies[i].move();
+                enemies[i].render();
+            }
+        }
+
+        function checkWall() {
+            for (let i = 0; i < bullets.length; i++) {
+                if(bullets[i].x < 0 || bullets[i].x > canvas.width || bullets[i].y < 0 || bullets[i].y > canvas.height){
+                    bullets.splice(i,1);
+                }
+            }
+        }
+
+        function checkCrash(obj1, obj2){
+            let left1 = obj1.x;
+            let right1 = obj1.x + obj1.width;
+            let top1 = obj1.y;
+            let bot1 = obj1.y+obj1.height;
+
+            let left2 = obj2.x;
+            let right2 = obj2.x + obj2.width;
+            let top2 = obj2.y;
+            let bot2 = obj2.y+obj2.height;
+
+            if(left1 > right2 || right1 < left2 || top1 > bot2 || bot1 < top2){
+                return false;
+            }
+
+            return true;
+        }
+
+        function checkCollision(){
+            for (let i = 0; i < enemies.length; i++) {
+                for (let j = 0; j < bullets.length; j++) {
+                    if(checkCrash(enemies[i], bullets[j])){
+                        enemies.splice(i,1);
+                        bullets.splice(j,1);
+                        break;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
